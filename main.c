@@ -6,53 +6,93 @@
 #include "board.h"
 #include "movegen.h"
 
-void makeMove(Board board, int fromRow, int fromCol, int toRow, int toCol);
-int userMove(Board board, struct Move moves[], int *moveCount);
+int userMove(Board board, struct Move moves[], int *moveCount, Color color);
 void botMove(Board board, struct Move moves[], int *moveCount);
+void mainGameLoop(Board board);
 
 int main() {
     srand(time(NULL));
 
     // clang-format off
-    Board mainBoard = {{{2, 'R'},{2, 'N'},{2, 'B'},{2, 'Q'},{2, 'K'},{2, 'B'},{2, 'N'},{2, 'R'}}, 
-                       {{2, 'P'},{2, 'P'},{2, 'P'},{2, 'P'},{2, 'P'},{2, 'P'},{2, 'P'},{2, 'P'}}, 
+    Board board = {{{2, 'R', true},{2, 'N'},{2, 'B'},{2, 'Q'},{2, 'K', true},{2, 'B'},{2, 'N'},{2, 'R', true}}, 
+                   {{2, 'P'},{2, 'P'},{2, 'P'},{2, 'P'},{2, 'P'},{2, 'P'},{2, 'P'},{2, 'P'}}, 
+                   {{0, '_'},{0, '_'},{0, '_'},{0, '_'},{0, '_'},{0, '_'},{0, '_'},{0, '_'}}, 
+                   {{0, '_'},{0, '_'},{0, '_'},{0, '_'},{0, '_'},{0, '_'},{0, '_'},{0, '_'}}, 
+                   {{0, '_'},{0, '_'},{0, '_'},{0, '_'},{0, '_'},{0, '_'},{0, '_'},{0, '_'}}, 
+                   {{0, '_'},{0, '_'},{0, '_'},{0, '_'},{0, '_'},{0, '_'},{0, '_'},{0, '_'}},
+                   {{1, 'P'},{1, 'P'},{1, 'P'},{1, 'P'},{1, 'P'},{1, 'P'},{1, 'P'},{1, 'P'}},  
+                   {{1, 'R', true},{1, 'N'},{1, 'B'},{1, 'Q'},{1, 'K', true},{1, 'B'},{1, 'N'},{1, 'R', true}}};
+    
+    Board testBoard = {{{0, '_'},{0, '_'},{0, '_'},{0, '_'},{0, '_'},{0, '_'},{0, '_'},{0, '_'}}, 
+                       {{0, '_'},{0, '_'},{0, '_'},{0, '_'},{0, '_'},{0, '_'},{0, '_'},{0, '_'}}, 
                        {{0, '_'},{0, '_'},{0, '_'},{0, '_'},{0, '_'},{0, '_'},{0, '_'},{0, '_'}}, 
                        {{0, '_'},{0, '_'},{0, '_'},{0, '_'},{0, '_'},{0, '_'},{0, '_'},{0, '_'}}, 
                        {{0, '_'},{0, '_'},{0, '_'},{0, '_'},{0, '_'},{0, '_'},{0, '_'},{0, '_'}}, 
                        {{0, '_'},{0, '_'},{0, '_'},{0, '_'},{0, '_'},{0, '_'},{0, '_'},{0, '_'}},
-                       {{1, 'P'},{1, 'P'},{1, 'P'},{1, 'P'},{1, 'P'},{1, 'P'},{1, 'P'},{1, 'P'}},  
-                       {{1, 'R'},{1, 'N'},{1, 'B'},{1, 'Q'},{1, 'K'},{1, 'B'},{1, 'N'},{1, 'R'}}};
+                       {{0, '_'},{0, '_'},{0, '_'},{0, '_'},{0, '_'},{0, '_'},{0, '_'},{0, '_'}},
+                       {{1, 'R', true},{0, '_'},{0, '_'},{0, '_'},{1, 'K', true},{0, '_'},{0, '_'},{1, 'R', true}}};
+
     // clang-format on
 
-    struct Move moves[500];
-    int moveCount = 0;
+    mainGameLoop(board);
+}
+
+void mainGameLoop(Board board) {
+    struct Move userMoves[500];
+    struct Move botMoves[500];
+    int userMoveCount = 0;
+    int botMoveCount = 0;
     Color currentPlayerColor = WHITE;
-    Color PlayerColor = WHITE;
-    Color BotColor = BLACK;
+    Color userColor = WHITE;
+    Color botColor = BLACK;
 
     while (1) {
-        printBoard(mainBoard);
-        allValidMoves(mainBoard, moves, &moveCount, currentPlayerColor);
+        printBoard(board);
+        allValidMoves(board, userMoves, botMoves, &userMoveCount, userColor);
+        allValidMoves(board, botMoves, userMoves, &botMoveCount, botColor);
 
-        if (currentPlayerColor == PlayerColor) {
-            while (!userMove(mainBoard, moves, &moveCount))
+        if (currentPlayerColor == userColor) {
+            allValidMoves(board, userMoves, botMoves, &userMoveCount, userColor);
+            if (userMoveCount == 0) {
+                printf("Stalemate.\n");
+                return;
+            }
+            if (isChecked(board, botMoves, &botMoveCount, userColor)) {
+                if (isCheckmated(board, botMoves, userMoves, &botMoveCount, &userMoveCount, userColor)) {
+                    printf("You lost!\n");
+                    return;
+                } else {
+                    printf("You are checked!\n");
+                }
+            }
+            while (!userMove(board, userMoves, &userMoveCount, userColor))
                 ;
-            currentPlayerColor = BotColor;
+            currentPlayerColor = botColor;
+            clearMoves(userMoves, &userMoveCount);
         } else {
-            botMove(mainBoard, moves, &moveCount);
-            currentPlayerColor = PlayerColor;
+            allValidMoves(board, botMoves, userMoves, &botMoveCount, botColor);
+            if (botMoveCount == 0) {
+                printf("Stalemate.\n");
+                return;
+            }
+            if (isChecked(board, userMoves, &userMoveCount, botColor)) {
+                if (isCheckmated(board, userMoves, botMoves, &userMoveCount, &botMoveCount, botColor)) {
+                    printf("You Won!\n");
+                    return;
+                } else {
+                    printf("The bot is checked!\n");
+                }
+            }
+            isThereBotPromotion(board, currentPlayerColor);
+            botMove(board, botMoves, &botMoveCount);
+            currentPlayerColor = userColor;
+            clearMoves(botMoves, &botMoveCount);
         }
-
-        clearMoves(moves, &moveCount);
-    }
-
-    for (int i = 0; i < moveCount; i++) {
-        printf("(%d) %d %d -> %d %d\n", i + 1, moves[i].fromRow, moves[i].fromCol, moves[i].toRow, moves[i].toCol);
     }
 }
 
-// Takes in input and converts values to 0-7
-int userMove(Board board, struct Move moves[], int *moveCount) {
+// Takes in input, converts each char to a value from 0-7, and makes move
+int userMove(Board board, struct Move moves[], int *moveCount, Color color) {
     char userArgs[2][3] = {"", ""};
 
     scanf("%s %s", userArgs[0], userArgs[1]);
@@ -65,22 +105,18 @@ int userMove(Board board, struct Move moves[], int *moveCount) {
 
     for (int i = 0; i < *moveCount; i++) {
         if (moves[i].fromRow == fromRow && moves[i].fromCol == fromCol && moves[i].toRow == toRow && moves[i].toCol == toCol) {
-            makeMove(board, fromRow, fromCol, toRow, toCol);
+            makeMove(board, fromRow, fromCol, toRow, toCol, moves[i].isEnPassant);
+            isThereUserPromotion(board, color);
             return 1;
         }
     }
+    printf("Illegal Move\n");
     return 0;
 }
 
+// Performs random bot move
 void botMove(Board board, struct Move moves[], int *moveCount) {
-    int r = rand() % (*moveCount) - 1;
-    makeMove(board, moves[r].fromRow, moves[r].fromCol, moves[r].toRow, moves[r].toCol);
-}
-
-void makeMove(Board board, int fromRow, int fromCol, int toRow, int toCol) {
-    board[toRow][toCol] = board[fromRow][fromCol];
-
-    board[fromRow][fromCol].color = NONE;
-    board[fromRow][fromCol].type = EMPTY;
+    int r = rand() % (*moveCount);
+    makeMove(board, moves[r].fromRow, moves[r].fromCol, moves[r].toRow, moves[r].toCol, moves[r].isEnPassant);
 }
 
