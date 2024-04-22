@@ -8,8 +8,8 @@ void clearMoves(struct Move moves[], int *moveCount) {
     *moveCount = 0;
 }
 
-void allValidMoves(Board board, struct Move moves[], struct Move enemyMoves[], int *moveCount, Color color) {
-    validPawnMoves(board, moves, enemyMoves, moveCount, color);
+void allValidMoves(Board board, struct Move moves[], int *moveCount, Color color) {
+    validPawnMoves(board, moves, moveCount, color);
     validKnightMoves(board, moves, moveCount, color);
     validBishopMoves(board, moves, moveCount, color);
     validRookMoves(board, moves, moveCount, color);
@@ -23,7 +23,7 @@ bool isInBounds(int y, int x) { return (y >= 0 && y < BOARD_SIZE && x >= 0 && x 
 bool isEnemy(Board board, int y, int x, Color color) { return (board[y][x].color == ((color == WHITE) ? BLACK : WHITE)); }
 
 // Checks for all valid pawn moves on the board
-void validPawnMoves(Board board, struct Move moves[], struct Move enemyMoves[], int *moveCount, Color color) {
+void validPawnMoves(Board board, struct Move moves[], int *moveCount, Color color) {
     // Handles pawn direction based on color
     int direction = (color == WHITE) ? -1 : 1;
 
@@ -33,6 +33,7 @@ void validPawnMoves(Board board, struct Move moves[], struct Move enemyMoves[], 
                 // Handles pawn moving forward once and/or twice
                 if (board[row + direction][col].color == NONE) {
                     moves[(*moveCount)++] = (struct Move){row, col, row + direction, col};
+
                     if (((color == BLACK && row == 1) || (color == WHITE && row == 6)) && board[row + (2 * direction)][col].color == NONE) {
                         moves[(*moveCount)++] = (struct Move){row, col, row + (2 * direction), col};
                     }
@@ -43,12 +44,6 @@ void validPawnMoves(Board board, struct Move moves[], struct Move enemyMoves[], 
                     moves[(*moveCount)++] = (struct Move){row, col, row + direction, col + 1};
                 if (isEnemy(board, row + direction, col - 1, color))
                     moves[(*moveCount)++] = (struct Move){row, col, row + direction, col - 1};
-
-                // Handles En Passant
-                if (isEnemy(board, row, col - 1, color))
-                    moves[(*moveCount)++] = (struct Move){row, col, row + direction, col - 1, true};
-                if (isEnemy(board, row, col + 1, color))
-                    moves[(*moveCount)++] = (struct Move){row, col, row + direction, col + 1, true};
             }
 }
 
@@ -163,12 +158,12 @@ bool validKingMoves(Board board, struct Move moves[], int *moveCount, Color colo
 
     for (int row = 0; row < BOARD_SIZE; row++)
         for (int col = 0; col < BOARD_SIZE; col++)
-            if (board[row][col].type == KING && board[row][col].color == color) {
-                for (int i = 0; i < 8; i++) {
-                    if (board[row + dy[i]][col + dx[i]].color == NONE && isInBounds(row + dy[i], col + dx[i])) {
+            for (int i = 0; i < 8; i++) {
+                if (board[row][col].type == KING && board[row][col].color == color && isInBounds(row + dy[i], col + dx[i])) {
+                    if (board[row + dy[i]][col + dx[i]].color == NONE) {
                         moves[(*moveCount)++] = (struct Move){row, col, row + dy[i], col + dx[i]};
                         canMove = true;
-                    } else if (isEnemy(board, row + dy[i], col + dx[i], color) && isInBounds(row + dy[i], col + dx[i])) {
+                    } else if (isEnemy(board, row + dy[i], col + dx[i], color)) {
                         moves[(*moveCount)++] = (struct Move){row, col, row + dy[i], col + dx[i]};
                         canMove = true;
                         break;
@@ -176,132 +171,68 @@ bool validKingMoves(Board board, struct Move moves[], int *moveCount, Color colo
                         break;
                 }
             }
-
-    // Castling Rights
-    switch (color) {
-    case (WHITE):
-        // If king hasnt moved
-        if (board[7][4].type == KING && board[7][4].castleRights == true) {
-            // Queen side
-            if (board[7][0].type == ROOK && board[7][0].castleRights == true && board[7][1].type == EMPTY && board[7][2].type == EMPTY &&
-                board[7][3].type == EMPTY) {
-                moves[(*moveCount)++] = (struct Move){7, 4, 7, 2};
-            }
-            // King side
-            if (board[7][7].type == ROOK && board[7][7].castleRights == true && board[7][5].type == EMPTY && board[7][6].type == EMPTY) {
-                moves[(*moveCount)++] = (struct Move){7, 4, 7, 6};
-            }
-        }
-        break;
-    case (BLACK):
-        if (board[7][4].type == KING && board[7][4].castleRights == true) {
-            if (board[0][0].type == ROOK && board[0][0].castleRights == true && board[0][1].type == EMPTY && board[0][2].type == EMPTY &&
-                board[0][3].type == EMPTY) {
-                moves[(*moveCount)++] = (struct Move){0, 4, 0, 2};
-            }
-            if (board[0][7].type == ROOK && board[0][7].castleRights == true && board[0][1].type == EMPTY && board[0][2].type == EMPTY) {
-                moves[(*moveCount)++] = (struct Move){0, 4, 0, 6};
-            }
-        }
-
-        break;
-    }
     return canMove;
 }
 
-// Checks and performs pawn promotion for user
-void isThereUserPromotion(Board board, Color color) {
-    for (int row = 0; row < BOARD_SIZE; row++)
-        for (int col = 0; col < BOARD_SIZE; col++)
-            if (board[row][col].type == PAWN && ((row == 0 && color == WHITE) || (row == 7 && color == BLACK))) {
-                printf("Pick between (1)Queen, (2)Rook, (3)Bishop, (4)Knight for your pawns promotion. \n");
-                int promotion = 0;
-                do {
-                    scanf("%d", &promotion);
-                } while (!(promotion > 0 && promotion < 5));
+bool isChecked(Board board, struct Move attackerMoves[], int *attackerMoveCount, Color defenderColor, struct Move defenderMoves[], int *defenderMoveCount) {
+    if (attackerMoves == NULL || attackerMoveCount == NULL || defenderMoves == NULL || defenderMoveCount == NULL) {
+        // Handle invalid input
+        return false;
+    }
 
-                while (1) {
-                    switch (promotion) {
-                    case (1):
-                        board[row][col].type = QUEEN;
-                        return;
-                    case (2):
-                        board[row][col].type = ROOK;
-                        return;
-                    case (3):
-                        board[row][col].type = BISHOP;
-                        return;
-                    case (4):
-                        board[row][col].type = KNIGHT;
-                        return;
-                    default:
-                        printf("Invalid input, please pick again");
-                    }
-                }
+    *defenderMoveCount = 0;
+
+    for (int row = 0; row < BOARD_SIZE; row++) {
+        for (int col = 0; col < BOARD_SIZE; col++) {
+            if (board[row][col].type == KING && board[row][col].color == defenderColor &&
+                isUnderAttack(board, attackerMoves, attackerMoveCount, defenderColor, row, col)) {
+                // Generate escape moves for the king
+                validKingMoves(board, defenderMoves, defenderMoveCount, defenderColor);
+                return true; // King is in check
             }
+        }
+    }
+
+    return false; // King is not in check
 }
 
-// Checks and performs pawn promotion for bot
-void isThereBotPromotion(Board board, Color color) {
-    for (int row = 0; row < BOARD_SIZE; row++)
-        for (int col = 0; col < BOARD_SIZE; col++)
-            if (board[row][col].type == PAWN && ((row == 0 && color == WHITE) || (row == 7 && color == BLACK))) {
-                int promotion = rand() % 4 + 1;
-                switch (promotion) {
-                case (1):
-                    board[row][col].type = QUEEN;
-                    return;
-                case (2):
-                    board[row][col].type = ROOK;
-                    return;
-                case (3):
-                    board[row][col].type = BISHOP;
-                    return;
-                case (4):
-                    board[row][col].type = KNIGHT;
-                    return;
-                }
-            }
-}
-
-// Checks whether a square is under attack or not
 bool isUnderAttack(Board board, struct Move attackerMoves[], int *attackerMoveCount, Color defenderColor, int squareRow, int squareCol) {
+    if (attackerMoves == NULL || attackerMoveCount == NULL) {
+        // Handle invalid input
+        return false;
+    }
+
     for (int i = 0; i < *attackerMoveCount; i++) {
         if (attackerMoves[i].toRow == squareRow && attackerMoves[i].toCol == squareCol && board[squareRow][squareCol].color == defenderColor) {
             return true;
         }
     }
+
     return false;
 }
 
-// Checks whether the king is checked or just chilling :)
-bool isChecked(Board board, struct Move attackerMoves[], int *attackerMoveCount, Color defenderColor) {
-    for (int row = 0; row < BOARD_SIZE; row++)
-        for (int col = 0; col < BOARD_SIZE; col++) {
-            if (board[row][col].type == KING && board[row][col].color == defenderColor &&
-                isUnderAttack(board, attackerMoves, attackerMoveCount, defenderColor, row, col))
-                return true;
-        }
-    return false;
-}
-
-// Checks whether the king is checkmated or not, should only get called if isChecked is true
 bool isCheckmated(Board board, struct Move attackerMoves[], struct Move defenderMoves[], int *attackerMoveCount, int *defenderMoveCount, Color defenderColor) {
+    if (defenderMoves == NULL || defenderMoveCount == NULL || attackerMoves == NULL || attackerMoveCount == NULL) {
+        // Handle invalid input
+        return false;
+    }
+
     bool isMated = true;
-    clearMoves(defenderMoves, defenderMoveCount);
+    int newDefenderMoveCount = 0;
 
     for (int i = 0; i < *defenderMoveCount; i++) {
-        makeMove(board, defenderMoves[i].fromRow, defenderMoves[i].fromCol, defenderMoves[i].toRow, defenderMoves[i].toCol, defenderMoves[i].isEnPassant);
-        if (!isChecked(board, attackerMoves, attackerMoveCount, defenderColor)) {
-            // If move to get out of mate is found, add it to possible moves list
+        makeMove(board, defenderMoves[i].fromRow, defenderMoves[i].fromCol, defenderMoves[i].toRow, defenderMoves[i].toCol);
 
-            defenderMoves[(*defenderMoveCount)++] =
-                (struct Move){defenderMoves[i].fromRow, defenderMoves[i].fromCol, defenderMoves[i].toRow, defenderMoves[i].toCol};
-
+        if (!isCheckmated(board, attackerMoves, NULL, attackerMoveCount, NULL, defenderColor)) {
+            // If the king is not in check after making the move, add it to the updated defender moves list
+            defenderMoves[newDefenderMoveCount++] = defenderMoves[i];
             isMated = false;
         }
+
         undoMove(board, defenderMoves[i].fromRow, defenderMoves[i].fromCol, defenderMoves[i].toRow, defenderMoves[i].toCol);
     }
+
+    *defenderMoveCount = newDefenderMoveCount;
 
     return isMated;
 }
