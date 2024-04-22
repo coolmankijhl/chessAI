@@ -4,6 +4,7 @@
 #include <unistd.h>
 
 #include "board.h"
+#include "movegen.h"
 
 #define PRINT_BOARD false
 
