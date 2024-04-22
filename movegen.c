@@ -180,21 +180,26 @@ bool validKingMoves(Board board, struct Move moves[], int *moveCount, Color colo
     // Castling Rights
     switch (color) {
     case (WHITE):
+        // If king hasnt moved
         if (board[7][4].type == KING && board[7][4].castleRights == true) {
-            if (board[7][0].type == ROOK && board[7][0].castleRights == true) {
+            // Queen side
+            if (board[7][0].type == ROOK && board[7][0].castleRights == true && board[7][1].type == EMPTY && board[7][2].type == EMPTY &&
+                board[7][3].type == EMPTY) {
                 moves[(*moveCount)++] = (struct Move){7, 4, 7, 2};
             }
-            if (board[7][7].type == ROOK && board[7][7].castleRights == true) {
+            // King side
+            if (board[7][7].type == ROOK && board[7][7].castleRights == true && board[7][5].type == EMPTY && board[7][6].type == EMPTY) {
                 moves[(*moveCount)++] = (struct Move){7, 4, 7, 6};
             }
         }
         break;
     case (BLACK):
         if (board[7][4].type == KING && board[7][4].castleRights == true) {
-            if (board[0][0].type == ROOK && board[0][0].castleRights == true) {
+            if (board[0][0].type == ROOK && board[0][0].castleRights == true && board[0][1].type == EMPTY && board[0][2].type == EMPTY &&
+                board[0][3].type == EMPTY) {
                 moves[(*moveCount)++] = (struct Move){0, 4, 0, 2};
             }
-            if (board[0][7].type == ROOK && board[0][7].castleRights == true) {
+            if (board[0][7].type == ROOK && board[0][7].castleRights == true && board[0][1].type == EMPTY && board[0][2].type == EMPTY) {
                 moves[(*moveCount)++] = (struct Move){0, 4, 0, 6};
             }
         }

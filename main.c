@@ -1,10 +1,14 @@
 #include <ctype.h>
+#include <limits.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
 
 #include "board.h"
 #include "movegen.h"
+#include "test.h"
+
+#define DEBUG true
 
 int userMove(Board board, struct Move moves[], int *moveCount, Color color);
 void botMove(Board board, struct Move moves[], int *moveCount);
@@ -14,7 +18,7 @@ int main() {
     srand(time(NULL));
 
     // clang-format off
-    Board board = {{{2, 'R', true},{2, 'N'},{2, 'B'},{2, 'Q'},{2, 'K', true},{2, 'B'},{2, 'N'},{2, 'R', true}}, 
+    Board mainBoard = {{{2, 'R', true},{2, 'N'},{2, 'B'},{2, 'Q'},{2, 'K', true},{2, 'B'},{2, 'N'},{2, 'R', true}}, 
                    {{2, 'P'},{2, 'P'},{2, 'P'},{2, 'P'},{2, 'P'},{2, 'P'},{2, 'P'},{2, 'P'}}, 
                    {{0, '_'},{0, '_'},{0, '_'},{0, '_'},{0, '_'},{0, '_'},{0, '_'},{0, '_'}}, 
                    {{0, '_'},{0, '_'},{0, '_'},{0, '_'},{0, '_'},{0, '_'},{0, '_'},{0, '_'}}, 
@@ -24,17 +28,17 @@ int main() {
                    {{1, 'R', true},{1, 'N'},{1, 'B'},{1, 'Q'},{1, 'K', true},{1, 'B'},{1, 'N'},{1, 'R', true}}};
     
     Board testBoard = {{{0, '_'},{0, '_'},{0, '_'},{0, '_'},{0, '_'},{0, '_'},{0, '_'},{0, '_'}}, 
-                       {{0, '_'},{0, '_'},{0, '_'},{0, '_'},{0, '_'},{0, '_'},{0, '_'},{0, '_'}}, 
+        {{0, '_'},{0, '_'},{0, '_'},{0, '_'},{0, '_'},{0, '_'},{0, '_'},{0, '_'}}, 
                        {{0, '_'},{0, '_'},{0, '_'},{0, '_'},{0, '_'},{0, '_'},{0, '_'},{0, '_'}}, 
                        {{0, '_'},{0, '_'},{0, '_'},{0, '_'},{0, '_'},{0, '_'},{0, '_'},{0, '_'}}, 
                        {{0, '_'},{0, '_'},{0, '_'},{0, '_'},{0, '_'},{0, '_'},{0, '_'},{0, '_'}}, 
                        {{0, '_'},{0, '_'},{0, '_'},{0, '_'},{0, '_'},{0, '_'},{0, '_'},{0, '_'}},
                        {{0, '_'},{0, '_'},{0, '_'},{0, '_'},{0, '_'},{0, '_'},{0, '_'},{0, '_'}},
-                       {{1, 'R', true},{0, '_'},{0, '_'},{0, '_'},{1, 'K', true},{0, '_'},{0, '_'},{1, 'R', true}}};
+                       {{0, '_'},{0, '_'},{0, '_'},{0, '_'},{0, '_'},{0, '_'},{0, '_'},{0, '_'}}};
 
     // clang-format on
 
-    mainGameLoop(board);
+    mainGameLoop(mainBoard);
 }
 
 void mainGameLoop(Board board) {
@@ -47,10 +51,15 @@ void mainGameLoop(Board board) {
     Color botColor = BLACK;
 
     while (1) {
-        printBoard(board);
         allValidMoves(board, userMoves, botMoves, &userMoveCount, userColor);
         allValidMoves(board, botMoves, userMoves, &botMoveCount, botColor);
 
+        if (DEBUG) {
+            test(board, currentPlayerColor);
+            return;
+        }
+
+        printBoard(board);
         if (currentPlayerColor == userColor) {
             allValidMoves(board, userMoves, botMoves, &userMoveCount, userColor);
             if (userMoveCount == 0) {
@@ -119,4 +128,3 @@ void botMove(Board board, struct Move moves[], int *moveCount) {
     int r = rand() % (*moveCount);
     makeMove(board, moves[r].fromRow, moves[r].fromCol, moves[r].toRow, moves[r].toCol, moves[r].isEnPassant);
 }
-
