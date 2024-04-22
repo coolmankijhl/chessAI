@@ -6,7 +6,13 @@
 #include "board.h"
 #include "movegen.h"
 
-#define PRINT_BOARD false
+#define PRINT_BOARD true
+#define BOARD1 false
+#define BOARD2 false
+#define BOARD3 false
+#define BOARD4 false
+#define BOARD5 false
+#define BOARD6 false
 
 // Recursivly debugs piece moves
 int perft(int depth, Board board, Color currentPlayerColor) {
@@ -108,23 +114,35 @@ void test(Board board, Color currentPlayerColor) {
                          {{1, 'R'},{0, '_'},{0, '_'},{0, '_'},{0, '_'},{1, 'R'},{1, 'K'},{0, '_'}}};
 
     // clang-format on
-    printf("(%d) %d\n", perft(1, board, currentPlayerColor) == 20, perft(1, board, currentPlayerColor));
-    printf("(%d) %d\n", perft(2, board, currentPlayerColor) == 400, perft(2, board, currentPlayerColor));
-    printf("(%d) %d\n\n", perft(3, board, currentPlayerColor) == 8902, perft(3, board, currentPlayerColor));
-    printf("(%d) %d\n", perft(1, board2, currentPlayerColor) == 48, perft(1, board2, currentPlayerColor));
-    printf("(%d) %d\n", perft(2, board2, currentPlayerColor) == 2039, perft(2, board2, currentPlayerColor));
-    printf("(%d) %d\n\n", perft(3, board2, currentPlayerColor) == 97862, perft(3, board2, currentPlayerColor));
-    printf("(%d) %d\n", perft(1, board3, currentPlayerColor) == 14, perft(1, board3, currentPlayerColor));
-    printf("(%d) %d\n", perft(2, board3, currentPlayerColor) == 191, perft(2, board3, currentPlayerColor));
-    printf("(%d) %d\n\n", perft(3, board3, currentPlayerColor) == 2812, perft(3, board3, currentPlayerColor));
-    printf("(%d) %d\n", perft(1, board4, currentPlayerColor) == 6, perft(1, board4, currentPlayerColor));
-    printf("(%d) %d\n", perft(2, board4, currentPlayerColor) == 264, perft(2, board4, currentPlayerColor));
-    printf("(%d) %d\n\n", perft(3, board4, currentPlayerColor) == 9467, perft(3, board4, currentPlayerColor));
-    printf("(%d) %d\n", perft(1, board5, currentPlayerColor) == 44, perft(1, board5, currentPlayerColor));
-    printf("(%d) %d\n", perft(2, board5, currentPlayerColor) == 1486, perft(2, board5, currentPlayerColor));
-    printf("(%d) %d\n\n", perft(3, board5, currentPlayerColor) == 62379, perft(3, board5, currentPlayerColor));
-    printf("(%d) %d\n", perft(1, board6, currentPlayerColor) == 1, perft(1, board6, currentPlayerColor));
-    printf("(%d) %d\n", perft(2, board6, currentPlayerColor) == 46, perft(2, board6, currentPlayerColor));
-    printf("(%d) %d\n\n", perft(3, board6, currentPlayerColor) == 2079, perft(3, board6, currentPlayerColor));
+    if (BOARD1) {
+        printf("(%d) %d\n", perft(1, board, currentPlayerColor) == 20, perft(1, board, currentPlayerColor));
+        printf("(%d) %d\n", perft(2, board, currentPlayerColor) == 400, perft(2, board, currentPlayerColor));
+        printf("(%d) %d\n\n", perft(3, board, currentPlayerColor) == 8902, perft(3, board, currentPlayerColor));
+    }
+    if (BOARD2) {
+        printf("(%d) %d\n", perft(1, board2, currentPlayerColor) == 48, perft(1, board2, currentPlayerColor));
+        printf("(%d) %d\n", perft(2, board2, currentPlayerColor) == 2039, perft(2, board2, currentPlayerColor));
+        printf("(%d) %d\n\n", perft(3, board2, currentPlayerColor) == 97862, perft(3, board2, currentPlayerColor));
+    }
+    if (BOARD3) {
+        printf("(%d) %d\n", perft(1, board3, currentPlayerColor) == 14, perft(1, board3, currentPlayerColor));
+        printf("(%d) %d\n", perft(2, board3, currentPlayerColor) == 191, perft(2, board3, currentPlayerColor));
+        printf("(%d) %d\n\n", perft(3, board3, currentPlayerColor) == 2812, perft(3, board3, currentPlayerColor));
+    }
+    if (BOARD4) {
+        printf("(%d) %d\n", perft(1, board4, currentPlayerColor) == 6, perft(1, board4, currentPlayerColor));
+        printf("(%d) %d\n", perft(2, board4, currentPlayerColor) == 264, perft(2, board4, currentPlayerColor));
+        printf("(%d) %d\n\n", perft(3, board4, currentPlayerColor) == 9467, perft(3, board4, currentPlayerColor));
+    }
+    if (BOARD5) {
+        printf("(%d) %d\n", perft(1, board5, currentPlayerColor) == 44, perft(1, board5, currentPlayerColor));
+        printf("(%d) %d\n", perft(2, board5, currentPlayerColor) == 1486, perft(2, board5, currentPlayerColor));
+        printf("(%d) %d\n\n", perft(3, board5, currentPlayerColor) == 62379, perft(3, board5, currentPlayerColor));
+    }
+    if (BOARD6) {
+        printf("(%d) %d\n", perft(1, board6, currentPlayerColor) == 1, perft(1, board6, currentPlayerColor));
+        printf("(%d) %d\n", perft(2, board6, currentPlayerColor) == 46, perft(2, board6, currentPlayerColor));
+        printf("(%d) %d\n\n", perft(3, board6, currentPlayerColor) == 2079, perft(3, board6, currentPlayerColor));
+    }
 }
 
