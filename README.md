@@ -3,7 +3,7 @@ Todo:
 [X] Board Implementation  
 [X] Valid Moves  
 [X] Perft Debugger  
-[] Move history  
+[X] Move history  
 [] Check/Checkmate  
 [] Promotion  
 [] En Passant  
