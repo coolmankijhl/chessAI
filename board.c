@@ -32,7 +32,7 @@ void makeMove(Board board, int fromRow, int fromCol, int toRow, int toCol) {
         history[historyIndex].castleRow = toRow;
         history[historyIndex].castled = true;
         board[toRow][toCol].castleRights = false;
-        //  Queen side
+        // Queen side
         if (toCol > fromCol) {
             history[historyIndex].castleCol = 7;
             board[toRow][toCol - 1] = board[toRow][7];
@@ -50,6 +50,31 @@ void makeMove(Board board, int fromRow, int fromCol, int toRow, int toCol) {
     // If rook or king moves remove castle rights
     if (board[toRow][toCol].type == ROOK || board[toRow][toCol].type == KING) {
         board[toRow][toCol].castleRights = false;
+    }
+
+    // Iterate over the entire board to remove enPassantAvailable for all pawns
+    for (int row = 0; row < BOARD_SIZE; row++) {
+        for (int col = 0; col < BOARD_SIZE; col++) {
+            if (board[row][col].type == PAWN) {
+                board[row][col].enPassantAvailable = false;
+                board[row][col].enPassantVulnerable = false;
+            }
+        }
+    }
+
+    // Check if a pawn makes a double move and set enPassantVulnerable
+    if (board[toRow][toCol].type == PAWN && abs(fromRow - toRow) == 2) {
+        // Set enPassantVulnerable for the pawn
+        board[toRow][toCol].enPassantVulnerable = true;
+    }
+
+    // Remove the captured pawn in en passant
+    if (board[toRow][toCol].type == PAWN && abs(fromCol - toCol) == 1 && board[toRow][toCol].enPassantAvailable == true) {
+        // Determine the row of the captured pawn
+        int capturedRow = (board[toRow][toCol].color == WHITE) ? toRow + 1 : toRow - 1;
+        // Clear the square of the captured pawn
+        board[capturedRow][toCol].type = EMPTY;
+        board[capturedRow][toCol].color = NONE;
     }
 
     historyIndex++;

@@ -41,6 +41,14 @@ void validPawnMoves(Board board, struct Move moves[], int *moveCount, Color colo
                     if (((color == BLACK && row == 1) || (color == WHITE && row == 6)) && isInBounds(row + (2 * direction), col) &&
                         board[row + (2 * direction)][col].color == NONE) {
                         moves[(*moveCount)++] = (struct Move){row, col, row + (2 * direction), col};
+
+                        // Makes En Passant Available to adajcent enemy pawns
+                        if (board[row + (2 * direction)][col - 1].type == PAWN && isEnemy(board, (row + (2 * direction)), col - 1, color)) {
+                            board[row + (2 * direction)][col - 1].enPassantAvailable = true;
+                        }
+                        if (board[row + (2 * direction)][col + 1].type == PAWN && isEnemy(board, (row + (2 * direction)), col + 1, color)) {
+                            board[row + (2 * direction)][col + 1].enPassantAvailable = true;
+                        }
                     }
                 }
 
@@ -50,6 +58,14 @@ void validPawnMoves(Board board, struct Move moves[], int *moveCount, Color colo
                 }
                 if (isEnemy(board, row + direction, col - 1, color)) {
                     moves[(*moveCount)++] = (struct Move){row, col, row + direction, col - 1};
+                }
+
+                // Handles pawns taking with En Passant
+                if (board[row][col].enPassantAvailable == true && isEnemy(board, row, col - 1, color) && board[row][col - 1].enPassantVulnerable == true) {
+                    moves[(*moveCount)++] = (struct Move){row, col, row + direction, col - 1};
+                }
+                if (board[row][col].enPassantAvailable == true && isEnemy(board, row, col + 1, color) && board[row][col + 1].enPassantVulnerable == true) {
+                    moves[(*moveCount)++] = (struct Move){row, col, row + direction, col + 1};
                 }
             }
         }
