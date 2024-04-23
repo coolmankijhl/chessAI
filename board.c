@@ -3,49 +3,61 @@
 #include "board.h"
 #include "movegen.h"
 
-void makeMove(Board board, int fromRow, int fromCol, int toRow, int toCol, bool isEnPassant) {
+struct historyNode {
+    PieceType typeTaken;
+    Color colorTaken;
+    int fromRow;
+    int fromCol;
+    int toRow;
+    int toCol;
+};
+
+struct historyNode history[1000];
+int historyIndex = 0;
+
+void makeMove(Board board, int fromRow, int fromCol, int toRow, int toCol) {
+    // Store the details of the move in the history
+    if (historyIndex < 1000) {
+        history[historyIndex].typeTaken = board[toRow][toCol].type;
+        history[historyIndex].colorTaken = board[toRow][toCol].color;
+        history[historyIndex].fromRow = fromRow;
+        history[historyIndex].fromCol = fromCol;
+        history[historyIndex].toRow = toRow;
+        history[historyIndex].toCol = toCol;
+        historyIndex++;
+    } else {
+        printf("Move history is full.\n");
+        return;
+    }
+
+    // Move the piece from the source square to the destination square
     board[toRow][toCol] = board[fromRow][fromCol];
 
-    // Move the rook if castling
-    if (board[toRow][toCol].type == 'K' && abs(toCol - fromCol) == 2) {
-        int rookFromCol, rookToCol;
-        if (toCol > fromCol) {
-            // King side castling
-            rookFromCol = 7;
-            rookToCol = toCol - 1;
-        } else {
-            // Queen side castling
-            rookFromCol = 0;
-            rookToCol = toCol + 1;
-        }
-        board[toRow][rookToCol] = board[toRow][rookFromCol];
-        board[toRow][rookFromCol].color = NONE;
-        board[toRow][rookFromCol].type = EMPTY;
-    }
-
-    // Handles en passant rights
-    if (board[toRow][toCol].type == 'P' && (fromRow - toRow == 2 || fromRow - toRow == -2))
-        board[toRow][toCol].enPassantVulnerable = true;
-
     // Clear the source square
-    board[fromRow][fromCol].color = NONE;
     board[fromRow][fromCol].type = EMPTY;
-
-    // Handles en passant capture
-    if (isEnPassant) {
-        // Removes the captured pawn in en passant
-        int direction = (board[toRow][toCol].color == WHITE) ? 1 : -1;
-        board[toRow + direction][toCol].color = NONE;
-        board[toRow + direction][toCol].type = EMPTY;
-        board[toRow + direction][toCol].enPassantVulnerable = false;
-    }
+    board[fromRow][fromCol].color = NONE;
 }
 
-void undoMove(Board board, int fromRow, int fromCol, int toRow, int toCol) {
-    board[fromRow][fromCol] = board[toRow][toCol];
+void undoMove(Board board) {
+    if (historyIndex > 0) {
+        // Decrement history index to access the last move
+        historyIndex--;
 
-    board[toRow][toCol].type = EMPTY;
-    board[toRow][toCol].color = NONE;
+        // Retrieve the details of the last move
+        int fromRow = history[historyIndex].fromRow;
+        int fromCol = history[historyIndex].fromCol;
+        int toRow = history[historyIndex].toRow;
+        int toCol = history[historyIndex].toCol;
+
+        // Restore the moved piece to its original position
+        board[fromRow][fromCol] = board[toRow][toCol];
+
+        // Restore the piece that was taken, if any
+        board[toRow][toCol].type = history[historyIndex].typeTaken;
+        board[toRow][toCol].color = history[historyIndex].colorTaken;
+    } else {
+        printf("No moves to undo.\n");
+    }
 }
 
 // Prints board white side
@@ -56,7 +68,7 @@ void printBoard(Board board) {
             if (board[i][j].color == WHITE)
                 printf("\e[0;37m\e[4;37m");
             else if (board[i][j].color == BLACK)
-                printf("\e[0;30m\e[4;30m");
+                printf("\e[0;32m\e[4;32m");
             printf("%c\e[0m|", board[i][j].type);
         }
         printf("\n");

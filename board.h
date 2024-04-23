@@ -26,13 +26,12 @@ typedef struct {
     Color color;
     PieceType type;
     bool castleRights;
-    bool enPassantVulnerable;
 } Piece;
 
 typedef Piece Board[8][8];
 
 void printBoard(Board board);
-void makeMove(Board board, int fromRow, int fromCol, int toRow, int toCol, bool isEnPassant);
-void undoMove(Board board, int fromRow, int fromCol, int toRow, int toCol);
+void makeMove(Board board, int fromRow, int fromCol, int toRow, int toCol);
+void undoMove(Board board);
 
 #endif
