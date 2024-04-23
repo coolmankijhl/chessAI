@@ -1,4 +1,4 @@
-# chessAI
+# chessAI WIP
 Todo:  
 [X] Board Implementation  
 [X] Valid Moves  
