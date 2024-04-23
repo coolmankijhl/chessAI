@@ -25,12 +25,13 @@ typedef enum {
 typedef struct {
     Color color;
     PieceType type;
+    bool castleRights;
 } Piece;
 
 typedef Piece Board[8][8];
 
 void printBoard(Board board);
-void undoMove(Board board, int fromRow, int fromCol, int toRow, int toCol);
 void makeMove(Board board, int fromRow, int fromCol, int toRow, int toCol);
+void undoMove(Board board);
 
 #endif

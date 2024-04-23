@@ -28,8 +28,6 @@ void validBishopMoves(Board board, struct Move moves[], int *moveCount, Color co
 void validQueenMoves(Board board, struct Move moves[], int *moveCount, Color color);
 bool validKingMoves(Board board, struct Move moves[], int *moveCount, Color color);
 bool isUnderAttack(Board board, struct Move attackerMoves[], int *attackerMoveCount, Color defenderColor, int squareRow, int squareCol);
-bool isCheckmated(Board board, struct Move attackerMoves[], struct Move defenderMoves[], int *attackerMoveCount, int *defenderMoveCount, Color defenderColor);
-bool isChecked(Board board, struct Move attackerMoves[], int *attackerMoveCount, Color defenderColor, struct Move defenderMoves[], int *defenderMoveCount);
 
 #endif
 

@@ -18,14 +18,14 @@ int main() {
     srand(time(NULL));
 
     // clang-format off
-    Board mainBoard = {{{2, 'R'},{2, 'N'},{2, 'B'},{2, 'Q'},{2, 'K'},{2, 'B'},{2, 'N'},{2, 'R'}}, 
+    Board mainBoard = {{{2, 'R', true},{2, 'N'},{2, 'B'},{2, 'Q'},{2, 'K', true},{2, 'B'},{2, 'N'},{2, 'R', true}}, 
                    {{2, 'P'},{2, 'P'},{2, 'P'},{2, 'P'},{2, 'P'},{2, 'P'},{2, 'P'},{2, 'P'}}, 
                    {{0, '_'},{0, '_'},{0, '_'},{0, '_'},{0, '_'},{0, '_'},{0, '_'},{0, '_'}}, 
                    {{0, '_'},{0, '_'},{0, '_'},{0, '_'},{0, '_'},{0, '_'},{0, '_'},{0, '_'}}, 
                    {{0, '_'},{0, '_'},{0, '_'},{0, '_'},{0, '_'},{0, '_'},{0, '_'},{0, '_'}}, 
                    {{0, '_'},{0, '_'},{0, '_'},{0, '_'},{0, '_'},{0, '_'},{0, '_'},{0, '_'}},
                    {{1, 'P'},{1, 'P'},{1, 'P'},{1, 'P'},{1, 'P'},{1, 'P'},{1, 'P'},{1, 'P'}},  
-                   {{1, 'R'},{1, 'N'},{1, 'B'},{1, 'Q'},{1, 'K'},{1, 'B'},{1, 'N'},{1, 'R'}}};
+                   {{1, 'R', true},{1, 'N'},{1, 'B'},{1, 'Q'},{1, 'K', true},{1, 'B'},{1, 'N'},{1, 'R', true}}};
 
     // clang-format on
 
@@ -37,6 +37,7 @@ void mainGameLoop(Board board) {
     struct Move botMoves[500];
     int userMoveCount = 0;
     int botMoveCount = 0;
+
     Color currentPlayerColor = WHITE;
     Color userColor = WHITE;
     Color botColor = BLACK;
@@ -57,14 +58,6 @@ void mainGameLoop(Board board) {
                 printf("Stalemate.\n");
                 return;
             }
-            if (isChecked(board, botMoves, &botMoveCount, userColor, userMoves, &userMoveCount)) {
-                if (isCheckmated(board, botMoves, userMoves, &botMoveCount, &userMoveCount, userColor)) {
-                    printf("You lost!\n");
-                    return;
-                } else {
-                    printf("You are checked!\n");
-                }
-            }
             while (!userMove(board, userMoves, &userMoveCount, userColor))
                 ;
             currentPlayerColor = botColor;
@@ -74,14 +67,6 @@ void mainGameLoop(Board board) {
             if (botMoveCount == 0) {
                 printf("Stalemate.\n");
                 return;
-            }
-            if (isChecked(board, userMoves, &userMoveCount, botColor, userMoves, &userMoveCount)) {
-                if (isCheckmated(board, userMoves, botMoves, &userMoveCount, &botMoveCount, botColor)) {
-                    printf("You Won!\n");
-                    return;
-                } else {
-                    printf("The bot is checked!\n");
-                }
             }
             botMove(board, botMoves, &botMoveCount);
             currentPlayerColor = userColor;
@@ -117,3 +102,4 @@ void botMove(Board board, struct Move moves[], int *moveCount) {
     int r = rand() % (*moveCount);
     makeMove(board, moves[r].fromRow, moves[r].fromCol, moves[r].toRow, moves[r].toCol);
 }
+
