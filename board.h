@@ -26,6 +26,8 @@ typedef struct {
     Color color;
     PieceType type;
     bool castleRights;
+    bool enPassantVulnerable;
+    bool enPassantAvailable;
 } Piece;
 
 struct historyNode {
