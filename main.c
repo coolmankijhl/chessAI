@@ -8,7 +8,7 @@
 #include "movegen.h"
 #include "test.h"
 
-#define DEBUG 1
+#define DEBUG 0
 
 void mainGameLoop(Board board);
 int userMove(Board board, struct Move moves[], int *moveCount, Color color);
@@ -27,9 +27,18 @@ int main() {
                    {{1, 'P'},{1, 'P'},{1, 'P'},{1, 'P'},{1, 'P'},{1, 'P'},{1, 'P'},{1, 'P'}},  
                    {{1, 'R', true},{1, 'N'},{1, 'B'},{1, 'Q'},{1, 'K', true},{1, 'B'},{1, 'N'},{1, 'R', true}}};
 
+         Board testBoard = {{{0, '_'},{2, 'P'},{0, '_'},{0, '_'},{0, '_'},{0, '_'},{0, '_'},{0, '_'}},
+                             {{0, '_'},{0, '_'},{0, '_'},{0, '_'},{0, '_'},{0, '_'},{0, '_'},{0, '_'}},
+                             {{0, '_'},{0, '_'},{0, '_'},{0, '_'},{0, '_'},{0, '_'},{0, '_'},{0, '_'}},
+                             {{0, '_'},{0, '_'},{0, '_'},{0, '_'},{0, '_'},{0, '_'},{0, '_'},{0, '_'}},
+                             {{0, '_'},{0, '_'},{0, '_'},{0, '_'},{0, '_'},{0, '_'},{0, '_'},{0, '_'}},
+                             {{0, '_'},{0, '_'},{0, '_'},{0, '_'},{0, '_'},{0, '_'},{0, '_'},{0, '_'}},
+                             {{0, '_'},{0, '_'},{0, '_'},{0, '_'},{0, '_'},{0, '_'},{0, '_'},{0, '_'}},
+                             {{1, 'R',true},{0, '_'},{0, '_'},{0, '_'},{1, 'K',true},{0, '_'},{0, '_'},{1, 'R',true}}};
+
     // clang-format on
 
-    mainGameLoop(mainBoard);
+    mainGameLoop(testBoard);
 }
 
 void mainGameLoop(Board board) {
@@ -47,7 +56,7 @@ void mainGameLoop(Board board) {
         allValidMoves(board, botMoves, &botMoveCount, botColor);
 
         if (DEBUG) {
-            test(board, currentPlayerColor);
+            test(currentPlayerColor);
             return;
         }
 

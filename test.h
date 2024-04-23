@@ -50,14 +50,13 @@ int perft(int depth, Board board, Color currentPlayerColor) {
         Color nextPlayerColor = (currentPlayerColor == WHITE) ? BLACK : WHITE;
         totalNodes += perft(depth - 1, board, nextPlayerColor);
 
-        // undoMove(board, moves[i].fromRow, moves[i].fromCol, moves[i].toRow, moves[i].toCol);
-        undoMove(board);
+        undoMove(board, currentPlayerColor);
     }
 
     return totalNodes;
 }
 
-void test(Board board, Color currentPlayerColor) {
+void test(Color currentPlayerColor) {
     // clang-format off
       Board board1 = {{{2, 'R', true},{2, 'N'},{2, 'B'},{2, 'Q'},{2, 'K', true},{2, 'B'},{2, 'N'},{2, 'R', true}},
                      {{2, 'P'},{2, 'P'},{2, 'P'},{2, 'P'},{2, 'P'},{2, 'P'},{2, 'P'},{2, 'P'}},
@@ -126,10 +125,10 @@ void test(Board board, Color currentPlayerColor) {
     // clang-format on
     if (BOARD1) {
         printf("POSITION 1\n");
-        printf("(%d) %d = 20\n", perft(1, board, currentPlayerColor) == 20, perft(1, board, currentPlayerColor));
-        printf("(%d) %d = 400\n", perft(2, board, currentPlayerColor) == 400, perft(2, board, currentPlayerColor));
-        printf("(%d) %d = 8902\n", perft(3, board, currentPlayerColor) == 8902, perft(3, board, currentPlayerColor));
-        printf("(%d) %d = 197281\n\n", perft(4, board, currentPlayerColor) == 197281, perft(4, board, currentPlayerColor));
+        printf("(%d) %d = 20\n", perft(1, board1, currentPlayerColor) == 20, perft(1, board1, currentPlayerColor));
+        printf("(%d) %d = 400\n", perft(2, board1, currentPlayerColor) == 400, perft(2, board1, currentPlayerColor));
+        printf("(%d) %d = 8902\n", perft(3, board1, currentPlayerColor) == 8902, perft(3, board1, currentPlayerColor));
+        printf("(%d) %d = 197281\n\n", perft(4, board1, currentPlayerColor) == 197281, perft(4, board1, currentPlayerColor));
     }
     if (BOARD2) {
         printf("POSITION 2\n");
