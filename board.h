@@ -28,10 +28,22 @@ typedef struct {
     bool castleRights;
 } Piece;
 
+struct historyNode {
+    bool castled;
+    int castleRow;
+    int castleCol;
+    PieceType typeTaken;
+    Color colorTaken;
+    int fromRow;
+    int fromCol;
+    int toRow;
+    int toCol;
+};
+
 typedef Piece Board[8][8];
 
 void printBoard(Board board);
 void makeMove(Board board, int fromRow, int fromCol, int toRow, int toCol);
-void undoMove(Board board);
+void undoMove(Board board, Color playerColor);
 
 #endif

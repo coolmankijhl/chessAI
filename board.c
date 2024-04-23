@@ -3,15 +3,6 @@
 #include "board.h"
 #include "movegen.h"
 
-struct historyNode {
-    PieceType typeTaken;
-    Color colorTaken;
-    int fromRow;
-    int fromCol;
-    int toRow;
-    int toCol;
-};
-
 struct historyNode history[1000];
 int historyIndex = 0;
 
@@ -24,7 +15,6 @@ void makeMove(Board board, int fromRow, int fromCol, int toRow, int toCol) {
         history[historyIndex].fromCol = fromCol;
         history[historyIndex].toRow = toRow;
         history[historyIndex].toCol = toCol;
-        historyIndex++;
     } else {
         printf("Move history is full.\n");
         return;
@@ -36,9 +26,36 @@ void makeMove(Board board, int fromRow, int fromCol, int toRow, int toCol) {
     // Clear the source square
     board[fromRow][fromCol].type = EMPTY;
     board[fromRow][fromCol].color = NONE;
+
+    // Handles Castling
+    if (abs(fromCol - toCol) == 2 && board[toRow][toCol].type == KING) {
+        history[historyIndex].castleRow = toRow;
+        history[historyIndex].castled = true;
+        board[toRow][toCol].castleRights = false;
+        //  Queen side
+        if (toCol > fromCol) {
+            history[historyIndex].castleCol = 7;
+            board[toRow][toCol - 1] = board[toRow][7];
+            board[toRow][7].type = EMPTY;
+            board[toRow][7].color = NONE;
+            // King side
+        } else {
+            history[historyIndex].castleCol = 0;
+            board[toRow][toCol + 1] = board[toRow][0];
+            board[toRow][0].type = EMPTY;
+            board[toRow][0].color = NONE;
+        }
+    }
+
+    // If rook or king moves remove castle rights
+    if (board[toRow][toCol].type == ROOK || board[toRow][toCol].type == KING) {
+        board[toRow][toCol].castleRights = false;
+    }
+
+    historyIndex++;
 }
 
-void undoMove(Board board) {
+void undoMove(Board board, Color playerColor) {
     if (historyIndex > 0) {
         // Decrement history index to access the last move
         historyIndex--;
@@ -55,8 +72,21 @@ void undoMove(Board board) {
         // Restore the piece that was taken, if any
         board[toRow][toCol].type = history[historyIndex].typeTaken;
         board[toRow][toCol].color = history[historyIndex].colorTaken;
-    } else {
-        printf("No moves to undo.\n");
+
+        // Check if castling was performed in the move being undone
+        if (history[historyIndex].castled) {
+            board[history[historyIndex].castleRow][history[historyIndex].castleCol].type = 'R';
+            board[history[historyIndex].castleRow][history[historyIndex].castleCol].color = playerColor;
+            if (toCol - fromCol == -2) {
+                // Queen side
+                board[history[historyIndex].castleRow][history[historyIndex].castleCol + 3].type = EMPTY;
+                board[history[historyIndex].castleRow][history[historyIndex].castleCol + 3].color = NONE;
+            } else if (toCol - fromCol == 2) {
+                // King side
+                board[history[historyIndex].castleRow][history[historyIndex].castleCol - 2].type = EMPTY;
+                board[history[historyIndex].castleRow][history[historyIndex].castleCol - 2].color = NONE;
+            }
+        }
     }
 }
 
