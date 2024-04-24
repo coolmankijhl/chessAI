@@ -8,7 +8,7 @@ Basic Chess AI written in C
 ## Getting started
 Clone the repository:
 ```
-git clone git@github.com:Dirk94/ChessAI.git
+git clone git@github.com:coolmankijhl/chessAI.git
 ```
 
 To run the program  
