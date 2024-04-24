@@ -6,7 +6,7 @@
 struct historyNode history[1000];
 int historyIndex = 0;
 
-void makeMove(Board board, int fromRow, int fromCol, int toRow, int toCol) {
+void makeMove(Board board, int fromRow, int fromCol, int toRow, int toCol, bool isBotMove) {
     // Store the details of the move in the history
     if (historyIndex < 1000) {
         history[historyIndex].typeTaken = board[toRow][toCol].type;
@@ -15,6 +15,7 @@ void makeMove(Board board, int fromRow, int fromCol, int toRow, int toCol) {
         history[historyIndex].fromCol = fromCol;
         history[historyIndex].toRow = toRow;
         history[historyIndex].toCol = toCol;
+        history[historyIndex].wasPromoted = false;
     } else {
         printf("Move history is full.\n");
         return;
@@ -77,6 +78,14 @@ void makeMove(Board board, int fromRow, int fromCol, int toRow, int toCol) {
         board[capturedRow][toCol].color = NONE;
     }
 
+    // Handles bot promotion
+    if (isBotMove) {
+        if (board[toRow][toCol].type == PAWN && ((board[toRow][toCol].color == WHITE && toRow == 0) || (board[toRow][toCol].color == BLACK && toRow == 7))) {
+            history[historyIndex].wasPromoted = true;
+            board[toRow][toCol].type = QUEEN;
+        }
+    }
+
     historyIndex++;
 }
 
@@ -111,6 +120,10 @@ void undoMove(Board board, Color playerColor) {
                 board[history[historyIndex].castleRow][history[historyIndex].castleCol - 2].type = EMPTY;
                 board[history[historyIndex].castleRow][history[historyIndex].castleCol - 2].color = NONE;
             }
+        }
+
+        if (history[historyIndex].wasPromoted) {
+            board[fromRow][fromCol].type = PAWN;
         }
     }
 }

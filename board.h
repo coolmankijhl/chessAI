@@ -34,6 +34,7 @@ struct historyNode {
     bool castled;
     int castleRow;
     int castleCol;
+    bool wasPromoted;
     PieceType typeTaken;
     Color colorTaken;
     int fromRow;
@@ -45,7 +46,7 @@ struct historyNode {
 typedef Piece Board[8][8];
 
 void printBoard(Board board);
-void makeMove(Board board, int fromRow, int fromCol, int toRow, int toCol);
+void makeMove(Board board, int fromRow, int fromCol, int toRow, int toCol, bool isBotMove);
 void undoMove(Board board, Color playerColor);
 
 #endif
