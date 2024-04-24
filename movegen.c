@@ -3,19 +3,36 @@
 #include "movegen.h"
 #include "board.h"
 
+#define DONTPRINT 0
+
 void clearMoves(struct Move moves[], int *moveCount) {
-    memset(moves, 0, *moveCount + 1);
+    memset(moves, -1, *moveCount + 1);
     *moveCount = 0;
 }
 
-void allValidMoves(Board board, struct Move moves[], int *moveCount, Color color) {
+void allValidMoves(Board board, struct Move moves[], int *moveCount, struct Move enemyMoves[], int *enemyMoveCount, Color color, Color enemyColor) {
     clearMoves(moves, moveCount);
+    clearMoves(enemyMoves, enemyMoveCount);
+
     validPawnMoves(board, moves, moveCount, color);
     validKnightMoves(board, moves, moveCount, color);
     validBishopMoves(board, moves, moveCount, color);
     validRookMoves(board, moves, moveCount, color);
     validQueenMoves(board, moves, moveCount, color);
     validKingMoves(board, moves, moveCount, color);
+
+    validPawnMoves(board, enemyMoves, enemyMoveCount, enemyColor);
+    validKnightMoves(board, enemyMoves, enemyMoveCount, enemyColor);
+    validBishopMoves(board, enemyMoves, enemyMoveCount, enemyColor);
+    validRookMoves(board, enemyMoves, enemyMoveCount, enemyColor);
+    validQueenMoves(board, enemyMoves, enemyMoveCount, enemyColor);
+    validKingMoves(board, enemyMoves, enemyMoveCount, enemyColor);
+
+    if (isCheck(board, enemyMoves, enemyMoveCount, color)) {
+        if (!DONTPRINT) {
+            printf("Check.\n");
+        }
+    }
 }
 
 // Checks if cordinates are within the bounds of the board
@@ -53,18 +70,20 @@ void validPawnMoves(Board board, struct Move moves[], int *moveCount, Color colo
                 }
 
                 // Handles pawn taking diagonally
-                if (isEnemy(board, row + direction, col + 1, color)) {
+                if (isEnemy(board, row + direction, col + 1, color) && isInBounds(row + direction, col + 1)) {
                     moves[(*moveCount)++] = (struct Move){row, col, row + direction, col + 1};
                 }
-                if (isEnemy(board, row + direction, col - 1, color)) {
+                if (isEnemy(board, row + direction, col - 1, color) && isInBounds(row + direction, col - 1)) {
                     moves[(*moveCount)++] = (struct Move){row, col, row + direction, col - 1};
                 }
 
                 // Handles pawns taking with En Passant
-                if (board[row][col].enPassantAvailable == true && isEnemy(board, row, col - 1, color) && board[row][col - 1].enPassantVulnerable == true) {
+                if (board[row][col].enPassantAvailable == true && isEnemy(board, row, col - 1, color) && board[row][col - 1].enPassantVulnerable == true &&
+                    isInBounds(row + direction, col - 1)) {
                     moves[(*moveCount)++] = (struct Move){row, col, row + direction, col - 1};
                 }
-                if (board[row][col].enPassantAvailable == true && isEnemy(board, row, col + 1, color) && board[row][col + 1].enPassantVulnerable == true) {
+                if (board[row][col].enPassantAvailable == true && isEnemy(board, row, col + 1, color) && board[row][col + 1].enPassantVulnerable == true &&
+                    isInBounds(row + direction, col + 1)) {
                     moves[(*moveCount)++] = (struct Move){row, col, row + direction, col + 1};
                 }
             }
@@ -221,8 +240,21 @@ bool validKingMoves(Board board, struct Move moves[], int *moveCount, Color colo
         break;
 
     case BLACK:
-        // Similar logic for black king and rooks
-        // Implement black king moves and castling here
+        if (board[0][4].type == KING && board[0][4].castleRights && !isUnderAttack(board, moves, moveCount, color, 0, 4)) {
+            // Queen side castling
+            if (board[7][0].type == ROOK && board[0][0].castleRights && board[0][1].type == EMPTY && board[0][2].type == EMPTY && board[0][3].type == EMPTY &&
+                !isUnderAttack(board, moves, moveCount, color, 0, 4) && !isUnderAttack(board, moves, moveCount, color, 0, 3)) {
+                moves[(*moveCount)++] = (struct Move){0, 4, 0, 2};
+                canMove = true;
+            }
+            // King side castling
+            if (board[0][7].type == ROOK && board[0][7].castleRights && board[0][5].type == EMPTY && board[0][6].type == EMPTY &&
+                !isUnderAttack(board, moves, moveCount, color, 0, 4) && !isUnderAttack(board, moves, moveCount, color, 0, 5)) {
+                moves[(*moveCount)++] = (struct Move){0, 4, 0, 6};
+                canMove = true;
+            }
+        }
+
         break;
     }
 
@@ -230,11 +262,6 @@ bool validKingMoves(Board board, struct Move moves[], int *moveCount, Color colo
 }
 
 bool isUnderAttack(Board board, struct Move attackerMoves[], int *attackerMoveCount, Color defenderColor, int squareRow, int squareCol) {
-    if (attackerMoves == NULL || attackerMoveCount == NULL) {
-        // Handle invalid input
-        return false;
-    }
-
     for (int i = 0; i < *attackerMoveCount; i++) {
         if (attackerMoves[i].toRow == squareRow && attackerMoves[i].toCol == squareCol && board[squareRow][squareCol].color == defenderColor) {
             return true;
@@ -244,3 +271,55 @@ bool isUnderAttack(Board board, struct Move attackerMoves[], int *attackerMoveCo
     return false;
 }
 
+bool isCheck(Board board, struct Move attackerMoves[], int *attackerMoveCount, Color playerColor) {
+    // Find the position of the king of the player
+    int kingRow = -1, kingCol = -1;
+    for (int row = 0; row < BOARD_SIZE; row++) {
+        for (int col = 0; col < BOARD_SIZE; col++) {
+            if (board[row][col].type == KING && board[row][col].color == playerColor) {
+                kingRow = row;
+                kingCol = col;
+                break;
+            }
+        }
+        if (kingRow != -1 && kingCol != -1)
+            break;
+    }
+
+    return isUnderAttack(board, attackerMoves, attackerMoveCount, playerColor, kingRow, kingCol);
+}
+
+bool isCheckmate(Board board) {
+    bool whiteKingFound = false;
+    bool blackKingFound = false;
+
+    for (int row = 0; row < BOARD_SIZE; row++) {
+        for (int col = 0; col < BOARD_SIZE; col++) {
+            if (board[row][col].type == KING && board[row][col].color == WHITE) {
+                whiteKingFound = true;
+                break;
+            }
+        }
+
+        for (int col = 0; col < BOARD_SIZE; col++) {
+            if (board[row][col].type == KING && board[row][col].color == BLACK) {
+                blackKingFound = true;
+                break;
+            }
+        }
+    }
+
+    if (!whiteKingFound) {
+        if (!DONTPRINT) {
+            printf("BLACK wins\n!");
+        }
+        return true;
+    } else if (!blackKingFound) {
+        if (!DONTPRINT) {
+            printf("WHITE wins\n!");
+        }
+        return true;
+    }
+
+    return false;
+}
