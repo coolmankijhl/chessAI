@@ -4,9 +4,10 @@ Todo:
 [X] Valid Moves  
 [X] Perft Debugger  
 [X] Move history  
-[] Check/Checkmate  
-[] Promotion  
-[] En Passant  
-[] Castling  
+[X] Check/Checkmate  
+[X] Promotion  
+[X] En Passant  
+[X] Castling  
 [] Minimax  
 [] Alphabeta  
+[] Give user ability to pick color
