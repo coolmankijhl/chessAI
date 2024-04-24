@@ -10,5 +10,5 @@
 #define KING_VALUE 999999
 
 int evaluateBoard(Board board);
-int minimax(Board board, int depth, bool maximizingPlayer);
-struct Move findBestMove(Board board, int depth);
+struct Move findBestMove(Board board, int depth, Color currentPlayerColor);
+int minimax(Board board, int depth, int alpha, int beta, bool maximizing);

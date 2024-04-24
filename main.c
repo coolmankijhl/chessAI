@@ -13,7 +13,7 @@
 
 void mainGameLoop(Board board);
 int userMove(Board board, struct Move moves[], int *moveCount, Color color);
-void botMove(Board board, struct Move moves[], int *moveCount);
+void botMove(Board board, struct Move moves[], int *moveCount, Color currentPlayerColor);
 void isThereUserPromotion(Board board, Color userColor);
 
 int main() {
@@ -82,7 +82,7 @@ void mainGameLoop(Board board) {
                 printf("Stalemate.\n");
                 return;
             }
-            botMove(board, botMoves, &botMoveCount);
+            botMove(board, botMoves, &botMoveCount, currentPlayerColor);
             currentPlayerColor = userColor;
             clearMoves(botMoves, &botMoveCount);
         }
@@ -141,9 +141,8 @@ void isThereUserPromotion(Board board, Color userColor) {
     }
 }
 
-// Performs random bot move
-void botMove(Board board, struct Move moves[], int *moveCount) {
-    int r = rand() % (*moveCount);
-    makeMove(board, moves[r].fromRow, moves[r].fromCol, moves[r].toRow, moves[r].toCol, true);
+void botMove(Board board, struct Move moves[], int *moveCount, Color currentPlayerColor) {
+    struct Move bestMove = findBestMove(board, 7, currentPlayerColor);
+    makeMove(board, bestMove.fromRow, bestMove.fromCol, bestMove.toRow, bestMove.toCol, true);
 }
 

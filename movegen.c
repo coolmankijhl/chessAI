@@ -3,7 +3,7 @@
 #include "movegen.h"
 #include "board.h"
 
-#define DONTPRINT 0
+#define DONTPRINT 1
 
 void clearMoves(struct Move moves[], int *moveCount) {
     memset(moves, -1, *moveCount + 1);

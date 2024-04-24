@@ -1,10 +1,14 @@
-#include "engine.h"
+#include <limits.h>
+#include <stdio.h>
+
 #include "board.h"
+#include "engine.h"
 #include "movegen.h"
 
-#define MAX_DEPTH 10 // Adjust the maximum depth according to your computational resources
+int max(int a, int b) { return (a > b) ? a : b; }
 
-// Evaluation function to evaluate the board state
+int min(int a, int b) { return (a < b) ? a : b; }
+
 int evaluateBoard(Board board) {
     int score = 0;
     for (int row = 0; row < BOARD_SIZE; row++) {
@@ -12,92 +16,105 @@ int evaluateBoard(Board board) {
             Piece piece = board[row][col];
             switch (piece.type) {
             case PAWN:
-                score += (piece.color == WHITE) ? PAWN_VALUE : -PAWN_VALUE;
+                score += (board[row][col].color == WHITE) ? KING_VALUE : -KING_VALUE;
                 break;
             case KNIGHT:
-                score += (piece.color == WHITE) ? KNIGHT_VALUE : -KNIGHT_VALUE;
+                score += (board[row][col].color == WHITE) ? KING_VALUE : -KING_VALUE;
                 break;
             case BISHOP:
-                score += (piece.color == WHITE) ? BISHOP_VALUE : -BISHOP_VALUE;
+                score += (board[row][col].color == WHITE) ? KING_VALUE : -KING_VALUE;
                 break;
             case ROOK:
-                score += (piece.color == WHITE) ? ROOK_VALUE : -ROOK_VALUE;
+                score += (board[row][col].color == WHITE) ? KING_VALUE : -KING_VALUE;
                 break;
             case QUEEN:
-                score += (piece.color == WHITE) ? QUEEN_VALUE : -QUEEN_VALUE;
+                score += (board[row][col].color == WHITE) ? KING_VALUE : -KING_VALUE;
                 break;
             case KING:
-                score += (piece.color == WHITE) ? KING_VALUE : -KING_VALUE;
-                break;
+                score += (board[row][col].color == WHITE) ? KING_VALUE : -KING_VALUE;
             }
         }
     }
     return score;
 }
 
-// Minimax function
-int minimax(Board board, int depth, bool maximizingPlayer) {
-    if (depth == 0) {
-        // Evaluate the current board state at leaf nodes
+int minimax(Board board, int depth, int alpha, int beta, bool maximizing) {
+    // Check if reached the maximum depth or if it's a terminal state (e.g., checkmate)
+    if (depth == 0 /*or checkmate*/) {
+        // Return the evaluation of the current board state
         return evaluateBoard(board);
     }
 
-    if (maximizingPlayer) {
-        int maxEval = INT_MIN;
-        // Generate all possible moves for the current player
-        struct Move moves[MAX_MOVES];
+    if (maximizing) {
+        int maxScore = INT_MIN; // Initialize the maximum score
+
+        // Find all possible moves for the maximizing player
+        struct Move moves[500];
         int moveCount = 0;
-        allValidMoves(board, moves, &moveCount, WHITE, BLACK);
+        struct Move enemyMoves[500];
+        int enemyMoveCount = 0;
+        allValidMoves(board, moves, &moveCount, enemyMoves, &enemyMoveCount, WHITE, BLACK);
+
+        // Loop through all possible moves
         for (int i = 0; i < moveCount; i++) {
-            // Make the move
             makeMove(board, moves[i].fromRow, moves[i].fromCol, moves[i].toRow, moves[i].toCol, true);
-            // Recursively call minimax with reduced depth and switching player
-            int eval = minimax(board, depth - 1, false);
-            // Undo the move
-            undoMove(board, BLACK);
-            maxEval = max(maxEval, eval);
-        }
-        return maxEval;
-    } else {
-        int minEval = INT_MAX;
-        // Generate all possible moves for the opponent
-        struct Move moves[MAX_MOVES];
-        int moveCount = 0;
-        allValidMoves(board, moves, &moveCount, BLACK, WHITE);
-        for (int i = 0; i < moveCount; i++) {
-            // Make the move
-            makeMove(board, moves[i].fromRow, moves[i].fromCol, moves[i].toRow, moves[i].toCol, false);
-            // Recursively call minimax with reduced depth and switching player
-            int eval = minimax(board, depth - 1, true);
-            // Undo the move
+            int score = minimax(board, depth - 1, alpha, beta, false); // Recursively call minimax for the next depth
+            maxScore = max(maxScore, score);
+            alpha = max(alpha, maxScore);
             undoMove(board, WHITE);
-            minEval = min(minEval, eval);
+
+            if (beta <= alpha)
+                break; // Beta cut-off
         }
-        return minEval;
+        return maxScore;
+    } else {
+        int minScore = INT_MAX;
+        struct Move moves[500];
+        int moveCount = 0;
+        struct Move enemyMoves[500];
+        int enemyMoveCount = 0;
+        allValidMoves(board, moves, &moveCount, enemyMoves, &enemyMoveCount, BLACK, WHITE);
+
+        for (int i = 0; i < moveCount; i++) {
+            makeMove(board, moves[i].fromRow, moves[i].fromCol, moves[i].toRow, moves[i].toCol, true);
+            int score = minimax(board, depth - 1, alpha, beta, true);
+            minScore = min(minScore, score);
+            beta = min(beta, minScore);
+            undoMove(board, BLACK);
+
+            if (beta <= alpha)
+                break; // Alpha cut-off
+        }
+        return minScore;
     }
 }
 
-// Function to find the best move using minimax algorithm
-struct Move findBestMove(Board board, int depth) {
-    int bestMoveIndex = -1;
-    int bestEval = INT_MIN;
-    // Generate all possible moves for the current player
-    struct Move moves[MAX_MOVES];
+struct Move findBestMove(Board board, int depth, Color currentPlayerColor) {
+    int bestScore = INT_MIN;
+    struct Move bestMove;
+    struct Move moves[500];
     int moveCount = 0;
-    allValidMoves(board, moves, &moveCount, WHITE, BLACK);
+    struct Move enemyMoves[500];
+    int enemyMoveCount = 0;
+    allValidMoves(board, moves, &moveCount, enemyMoves, &enemyMoveCount, currentPlayerColor, ((currentPlayerColor == WHITE) ? BLACK : WHITE));
+
+    // Alpha and beta initialization
+    int alpha = INT_MIN;
+    int beta = INT_MAX;
+
+    // Loop through all possible moves
     for (int i = 0; i < moveCount; i++) {
-        // Make the move
         makeMove(board, moves[i].fromRow, moves[i].fromCol, moves[i].toRow, moves[i].toCol, true);
-        // Evaluate the move using minimax with reduced depth
-        int eval = minimax(board, depth - 1, false);
-        // Undo the move
-        undoMove(board, BLACK);
-        if (eval > bestEval) {
-            bestEval = eval;
-            bestMoveIndex = i;
+        int score = minimax(board, depth - 1, alpha, beta, false);
+        undoMove(board, WHITE);
+
+        // If the score is better than the current best score, update the best move
+        if (score > bestScore) {
+            bestScore = score;
+            bestMove = moves[i];
         }
+        alpha = max(alpha, bestScore);
     }
-    // Return the best move found
-    return moves[bestMoveIndex];
+    return bestMove;
 }
 

@@ -9,13 +9,13 @@
 #include "movegen.h"
 
 #define PRINT_BOARD 1
-#define PRINT_BOARD_DELAY_TIME 0
+#define PRINT_BOARD_DELAY_TIME 1
 #define PRINT_MOVE 0
 #define BOARD1 0
 #define BOARD2 0
 #define BOARD3 0
 #define BOARD4 0
-#define BOARD5 0
+#define BOARD5 1
 #define BOARD6 0
 #define TESTBOARD 1
 
